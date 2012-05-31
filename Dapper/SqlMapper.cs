@@ -1131,6 +1131,45 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
             if (s == null || s.Length != 1) throw new ArgumentException("A single-character was expected", "value");
             return s[0];            
         }
+
+        /// <summary>
+        /// Internal use only
+        /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method is for internal usage only", false)]
+        public static bool ReadBool(object value)
+        {
+            if (value == null || value is DBNull) throw new ArgumentNullException("value");
+            if (value is bool) return (bool)value;
+            try
+            {
+                return ((byte)value) == 1;
+            }
+            catch (InvalidCastException)
+            {
+                throw new ArgumentException("Expecting a bool or byte");
+            }
+        }
+
+        /// <summary>
+        /// Internal use only
+        /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method is for internal usage only", false)]
+        public static bool? ReadNullableBool(object value)
+        {
+            if (value == null || value is DBNull) return null;
+            if (value is bool) return (bool)value;
+            try
+            {
+                return ((byte)value) == 1;
+            }
+            catch (InvalidCastException)
+            {
+                throw new ArgumentException("Expecting a null, bool or byte");
+            }
+        }
+
         /// <summary>
         /// Internal use only
         /// </summary>
@@ -1407,6 +1446,14 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
             {
                 return r => SqlMapper.ReadNullableChar(r.GetValue(index));
             }
+            if (type == typeof(bool))
+            {
+                return r => SqlMapper.ReadBool(r.GetValue(index));
+            }
+            if (type == typeof(bool?))
+            {
+                return r => SqlMapper.ReadNullableBool(r.GetValue(index));
+            }
             if (type.FullName == LinqBinary)
             {
                 return r => Activator.CreateInstance(type, r.GetValue(index));
@@ -1556,6 +1603,11 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                     {
                         il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(
                             memberType == typeof(char) ? "ReadChar" : "ReadNullableChar", BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
+                    }
+                    else if (memberType == typeof(bool) || memberType == typeof(bool?))
+                    {
+                        il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(
+                            memberType == typeof(bool) ? "ReadBool" : "ReadNullableBool", BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
                     }
                     else
                     {
