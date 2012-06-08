@@ -17,12 +17,17 @@ namespace Dapper.Rainbow
         {
             private readonly string _ignore = " IGNORE";
 
-            public MySqlTable(Database<TDatabase> database, string likelyTableName, string keyFieldName = "Id")
-                : base(database, likelyTableName, "`", "`", keyFieldName) { }
+            public MySqlTable(Database<TDatabase> database, string likelyTableName)
+                : base(database, likelyTableName, "`", "`") { }
 
             public override long? Insert(dynamic data)
             {
                 return Insert(data, false);
+            }
+
+            public void SetKeyFieldName(string keyFieldName)
+            {
+                KeyFieldName = keyFieldName;
             }
 
             public virtual long? Insert(dynamic data, bool ignoreIfExists)

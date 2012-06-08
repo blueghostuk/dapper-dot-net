@@ -32,15 +32,19 @@ namespace Dapper
 
             protected readonly string NamePrefix;
             protected readonly string NameSuffix;
-            protected readonly string KeyFieldName;
 
-            public Table(Database<TDatabase> database, string likelyTableName, string prefix = "[", string suffix = "]", string keyFieldName = "Id")
+            public string KeyFieldName { get; protected set; }
+
+            public Table(Database<TDatabase> database, string likelyTableName)
+                : this(database, likelyTableName, null, null) { }
+
+            protected Table(Database<TDatabase> database, string likelyTableName, string prefix = "[", string suffix = "]")
             {
                 this.database = database;
                 this.likelyTableName = likelyTableName;
                 this.NamePrefix = prefix;
                 this.NameSuffix = suffix;
-                this.KeyFieldName = keyFieldName;
+                KeyFieldName = "Id";
             }
 
             public string TableName
