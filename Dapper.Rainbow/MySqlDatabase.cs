@@ -8,7 +8,7 @@ namespace Dapper.Rainbow
 {
     public abstract class MySqlDatabase<TDatabase> : Database<TDatabase> where TDatabase : Database<TDatabase>, new()
     {
-        private static readonly TransactionOptions DefaultTransactionOptions = new TransactionOptions()
+        public static readonly TransactionOptions DefaultTransactionOptions = new TransactionOptions()
         {
             IsolationLevel = IsolationLevel.RepeatableRead
         };
@@ -42,6 +42,11 @@ namespace Dapper.Rainbow
             {
                 return database.Query<T>("SELECT * FROM " + NamePrefix + TableName + NameSuffix + " LIMIT 1").FirstOrDefault();
             }
+        }
+
+        internal override Action<TDatabase> CreateTableConstructorForTable()
+        {
+            return CreateTableConstructor(typeof(MySqlTable<>));
         }
     }
 }
