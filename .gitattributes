@@ -47,3 +47,8 @@
 *.fsproj -text merge=union 
 *.dbproj -text merge=union 
 *.sln -text merge=union 
+
+*.config -text
+*.ps1 -text
+*.config.transform -text
+*.manifest -text
