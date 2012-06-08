@@ -19,7 +19,7 @@ namespace Dapper.Rainbow
             /// </summary>
             /// <param name="data">Either DynamicParameters or an anonymous type or concrete type</param>
             /// <returns></returns>
-            public override int? Insert(dynamic data)
+            public override long? Insert(dynamic data)
             {
                 var o = (object)data;
                 List<string> paramNames = GetParamNames(o);

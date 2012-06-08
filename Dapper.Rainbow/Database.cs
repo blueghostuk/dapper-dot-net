@@ -26,14 +26,21 @@ namespace Dapper
     {
         public class Table<T>
         { 
-            internal Database<TDatabase> database;
+            internal readonly Database<TDatabase> database;
             internal string tableName;
-            internal string likelyTableName;
+            internal readonly string likelyTableName;
 
-            public Table(Database<TDatabase> database, string likelyTableName)
+            protected readonly string NamePrefix;
+            protected readonly string NameSuffix;
+            protected readonly string KeyFieldName;
+
+            public Table(Database<TDatabase> database, string likelyTableName, string prefix = "[", string suffix = "]", string keyFieldName = "Id")
             {
                 this.database = database;
                 this.likelyTableName = likelyTableName;
+                this.NamePrefix = prefix;
+                this.NameSuffix = suffix;
+                this.KeyFieldName = keyFieldName;
             }
 
             public string TableName
@@ -50,14 +57,14 @@ namespace Dapper
             /// </summary>
             /// <param name="data">Either DynamicParameters or an anonymous type or concrete type</param>
             /// <returns></returns>
-            public virtual int? Insert(dynamic data)
+            public virtual long? Insert(dynamic data)
             {
                 var o = (object)data;
                 List<string> paramNames = GetParamNames(o);
 
                 string cols = string.Join(",", paramNames);
                 string cols_params = string.Join(",", paramNames.Select(p => "@" + p));
-                var sql = "set nocount on insert " + TableName + " (" + cols + ") values (" + cols_params + ") select cast(scope_identity() as int)";
+                var sql = "set nocount on insert " + TableName + " (" + cols + ") values (" + cols_params + ") select cast(scope_identity() as long)";
 
                 return database.Query<int?>(sql, o).Single();
             }
@@ -68,14 +75,14 @@ namespace Dapper
             /// <param name="id"></param>
             /// <param name="data"></param>
             /// <returns></returns>
-            public int Update(int id, dynamic data)
+            public virtual int Update(long id, dynamic data)
             {
                 List<string> paramNames = GetParamNames((object)data);
 
                 var builder = new StringBuilder();
-                builder.Append("update [").Append(TableName).Append("] set ");
-                builder.AppendLine(string.Join(",", paramNames.Where(n => n != "Id").Select(p => p + "= @" + p)));
-                builder.Append("where Id = @Id");
+                builder.AppendFormat("UPDATE {0}{1}{2} SET ", NamePrefix, TableName, NameSuffix);
+                builder.AppendLine(string.Join(",", paramNames.Where(n => n != KeyFieldName).Select(p => p + "= @" + p)));
+                builder.AppendFormat("WHERE {0}{1}{2} = @Id", NamePrefix, KeyFieldName, NameSuffix);
 
                 DynamicParameters parameters = new DynamicParameters(data);
                 parameters.Add("Id", id);
@@ -88,9 +95,9 @@ namespace Dapper
             /// </summary>
             /// <param name="id"></param>
             /// <returns></returns>
-            public bool Delete(int id)
+            public virtual bool Delete(long id)
             {
-                return database.Execute("delete " + TableName + " where Id = @id", new { id }) > 0;
+                return database.Execute("DELETE FROM " + NamePrefix + TableName + NameSuffix + " WHERE " + NamePrefix + KeyFieldName + NameSuffix + " = @id", new { id }) > 0;
             }
 
             /// <summary>
@@ -98,19 +105,19 @@ namespace Dapper
             /// </summary>
             /// <param name="id"></param>
             /// <returns></returns>
-            public T Get(int id)
+            public virtual T Get(long id)
             {
-                return database.Query<T>("select * from " + TableName + " where id = @id", new { id }).FirstOrDefault();
+                return database.Query<T>("SELECT * FROM " + NamePrefix + TableName + NameSuffix + " WHERE " + NamePrefix + KeyFieldName + NameSuffix + " = @id", new { id }).FirstOrDefault();
             }
 
-            public T First()
+            public virtual T First()
             {
-                return database.Query<T>("select top 1 * from " + TableName).FirstOrDefault();
+                return database.Query<T>("select top 1 * from " + NamePrefix + TableName + NameSuffix).FirstOrDefault();
             }
 
-            public IEnumerable<T> All()
+            public virtual IEnumerable<T> All()
             {
-                return database.Query<T>("select * from " + TableName);
+                return database.Query<T>("SELECT * FROM " + NamePrefix + TableName + NameSuffix);
             }
 
             static ConcurrentDictionary<Type, List<string>> paramNameCache = new ConcurrentDictionary<Type, List<string>>();
