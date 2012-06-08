@@ -13,11 +13,11 @@ namespace Dapper.Rainbow
             IsolationLevel = IsolationLevel.RepeatableRead
         };
 
-        public class Table<T> : Database<TDatabase>.Table<T>
+        public class MySqlTable<T> : Database<TDatabase>.Table<T>
         {
             private readonly string _ignore = " IGNORE";
 
-            public Table(Database<TDatabase> database, string likelyTableName, string keyFieldName = "Id")
+            public MySqlTable(Database<TDatabase> database, string likelyTableName, string keyFieldName = "Id")
                 : base(database, likelyTableName, "`", "`", keyFieldName) { }
 
             public override long? Insert(dynamic data)
