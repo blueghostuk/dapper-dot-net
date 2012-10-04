@@ -2004,6 +2004,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
             /// <typeparam name="TFourth"></typeparam>
             /// <typeparam name="TFifth"></typeparam>
             /// <typeparam name="TReturn"></typeparam>
+            /// <typeparam name="TSixth"></typeparam>
             /// <param name="func"></param>
             /// <param name="splitOn"></param>
             /// <returns></returns>
