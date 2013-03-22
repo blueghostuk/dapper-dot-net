@@ -1172,13 +1172,18 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
         {
             if (value == null || value is DBNull) throw new ArgumentNullException("value");
             if (value is bool) return (bool)value;
+            if (value is byte) return ((byte)value) == 1;
             try
             {
-                return ((byte)value) == 1;
+                return Convert.ToBoolean(value);
             }
-            catch (InvalidCastException)
+            catch (Exception e)
             {
-                throw new ArgumentException("Expecting a bool or byte");
+                if (e is InvalidCastException || e is FormatException)
+                {
+                    throw new ArgumentException("Expecting bool, byte or int");
+                }
+                throw;
             }
         }
 
@@ -1191,13 +1196,18 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
         {
             if (value == null || value is DBNull) return null;
             if (value is bool) return (bool)value;
+            if (value is byte) return ((byte)value) == 1;
             try
             {
-                return ((byte)value) == 1;
+                return Convert.ToBoolean(value);
             }
-            catch (InvalidCastException)
+            catch (Exception e)
             {
-                throw new ArgumentException("Expecting a null, bool or byte");
+                if (e is InvalidCastException || e is FormatException)
+                {
+                    throw new ArgumentException("Expecting null, bool, byte or int");
+                }
+                throw;
             }
         }
 
